@@ -10,6 +10,7 @@ app.get("/", function (request, response) {
     response.sendFile(__dirname + "/index.html");
 });
 
+//calculator.js
 app.post("/", function(req, res){
 
     var num1= Number(req.body.n1);
@@ -20,7 +21,17 @@ app.post("/", function(req, res){
 res.send("The result of the calculation is " + result);
 });
 
-// Start the server 3000 port
-app.listen(3000, function (){
-    console.log("Server started on 3000")
+//BMI Calculator.js
+app.get("/bmicalculator", function (request, response) {
+    response.sendFile(__dirname + "/bmiCalculator.html");
+});
+
+app.post("/bmicalculator", function(req, res){
+var weight = parseFloat(req.body.weight);
+var height = parseFloat(req.body.height);
+
+var bmi = weight / (height * height);
+
+res.send("Your BMI is " + bmi);
+
 });
