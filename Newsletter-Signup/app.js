@@ -70,7 +70,3 @@ app.listen(process.env.PORT, function(){
 
 
 
-//audience id
-//6e5895f952aee9312ed426cf2e4e21b2-us21
-//list ID
-//7c06ae5a3e
