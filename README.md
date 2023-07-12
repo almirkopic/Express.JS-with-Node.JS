@@ -3,4 +3,5 @@
 # Calculator + BMI Calculator, included into calculator.JS file, simple test server app's
 
 *npm init
-*mpm install module
+*npm install module
+*npm i express body-parse
