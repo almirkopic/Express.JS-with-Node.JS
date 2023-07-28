@@ -31,23 +31,26 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-
-Item.find({})
-    .then(foundItems => {
-        if (foundItems.length === 0) {
-            return Item.insertMany(defaultItems);
-        } else {
-            return foundItems;
-        }
-    })
-    .then(items => {
-        app.get("/", function(req, res) {
-            res.render("list", { listTitle: "Today", newListItems: items });
+app.get("/", function(req, res) {
+    Item.find({})
+        .then(foundItems => {
+            if (foundItems.length === 0) {
+                return Item.insertMany(defaultItems)
+                    .then(() => {
+                        console.log("Successfully saved default items to DB");
+                        res.render("list", { listTitle: "Today", newListItems: defaultItems });
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+            } else {
+                res.render("list", { listTitle: "Today", newListItems: foundItems });
+            }
+        })
+        .catch(err => {
+            console.log(err);
         });
-    })
-    .catch(err => {
-        console.log(err);
-    });
+});
 
 app.post("/", function(req, res) {
     let itemName = req.body.newItem;
