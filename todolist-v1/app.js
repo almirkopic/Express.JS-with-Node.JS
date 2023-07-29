@@ -31,20 +31,20 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-app.get("/", function(req, res) {
+app.get("/", function (req, res) {
     Item.find({})
         .then(foundItems => {
             if (foundItems.length === 0) {
-                return Item.insertMany(defaultItems)
-                    .then(() => {
-                        console.log("Successfully saved default items to DB");
-                        res.render("list", { listTitle: "Today", newListItems: defaultItems });
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
+                return Item.insertMany(defaultItems);
             } else {
-                res.render("list", { listTitle: "Today", newListItems: foundItems });
+                return foundItems;
+            }
+        })
+        .then(items => {
+            if (items.length === 0) {
+                res.redirect("/");
+            } else {
+                res.render("list", { listTitle: "Today", newListItems: items });
             }
         })
         .catch(err => {
@@ -60,6 +60,24 @@ app.post("/", function(req, res) {
     item.save();
     res.redirect("/");
 });
+
+app.post("/delete", function(req, res) {
+    const checkedItemID = req.body.checkbox;
+
+    Item.findByIdAndRemove(checkedItemID)
+        .then(() => {
+            console.log("successfully deleted checked item");
+            res.redirect("/");
+        })
+        .catch(err => {
+            console.log(err);
+            res.redirect("/"); // Redirect on error as well
+        });
+});
+
+
+// Define workItems array here
+let workItems = [];
 
 app.get("/work", function(req, res) {
     res.render("list", { listTitle: "Work List", newListItems: workItems });
