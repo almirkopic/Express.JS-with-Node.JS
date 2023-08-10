@@ -1,4 +1,4 @@
-
+//jshint esversion:6
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -18,7 +18,7 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-mongoose.connect("mongodb://localhost:27017/blogDB", {useNewUrlParser: true});
+mongoose.connect("mongodb://127.0.0.1:27017/blogDB", {useNewUrlParser: true, useUnifiedTopology: true});
 
 const postSchema = {
   title: String,
@@ -27,56 +27,64 @@ const postSchema = {
 
 const Post = mongoose.model("Post", postSchema);
 
-let posts = [];
-
-app.get('/', function (req, res) {
-  res.render('home', { 
-  startingContent: homeStartingContent,
-  posts: posts
-  });
+app.get('/', async function (req, res) {
+  try {
+    const posts = await Post.find({});
+    res.render('home', { 
+      startingContent: homeStartingContent,
+      posts: posts
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 app.get('/about', function (req, res) {
-  res.render('about', { aboutContent: aboutContent});
+  res.render('about', { aboutContent: aboutContent });
 });
 
-
 app.get('/contact', function (req, res) {
-  res.render('contact', { contactContent: contactContent});
+  res.render('contact', { contactContent: contactContent });
 });
 
 app.get('/compose', function (req, res) {
   res.render('compose');
 });
 
-app.post('/compose', function (req, res) {
- 
-  const post = {
+app.post('/compose', async function (req, res) {
+  const post = new Post({
     title: req.body.postTitle,
     content: req.body.postBody
-  };
-  post.save();
-
-  res.redirect("/");
-});
-
-
-app.get("/posts/:postName", function(req, res) {
- const requestedTitle = _.lowerCase(req.params.postName);
-
- posts.forEach(function(post){
-  const storedTittle = _.lowerCase(post.title);
-
-  if(storedTittle === requestedTitle){
-    res.render("post", {
-      title: post.title,
-      content:post.content
-    })
-    }
   });
-  
+
+  try {
+    await post.save();
+    res.redirect("/");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
+app.get("/posts/:postId", async function(req, res){
+  const requestedPostId = req.params.postId;
+  
+  try {
+    const post = await Post.findOne({ _id: requestedPostId });
+    if (post) {
+      res.render("post", {
+        title: post.title,
+        content: post.content
+      });
+    } else {
+      res.status(404).send('Post not found');
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.listen(3000, function() {
   console.log("Server started on port 3000");
