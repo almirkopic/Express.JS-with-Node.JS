@@ -31,28 +31,55 @@ const articleSchema = {
 
 const Article = mongoose.model("Article", articleSchema);
 
-app.get("/articles", async (req, res) => {
-    try {
-        const foundArticles = await Article.find();
-        res.send(foundArticles);
-    } catch (err) {
-        res.status(500).json({ message: "Error fetching articles" });
-    }
-});
+////////////////Request Targeting all Articles//////////////
 
-app.post("/articles", async (req, res) => {
-    const newArticle = new Article({
-        title: req.body.title,
-        content: req.body.content
+app.route("/articles")
+    .get(async (req, res) => {
+        try {
+            const foundArticles = await Article.find();
+            res.send(foundArticles);
+        } catch (err) {
+            res.status(500).json({ message: "Error fetching articles" });
+        }
+    })
+    .post(async (req, res) => {
+        const newArticle = new Article({
+            title: req.body.title,
+            content: req.body.content
+        });
+
+        try {
+            await newArticle.save();
+            res.send("Successfully added a new article.");
+        } catch (err) {
+            res.send(err);
+        }
+    })
+    .delete(async (req, res) => {
+        try {
+            await Article.deleteMany();
+            res.send("Successfully deleted all articles");
+        } catch (err) {
+            res.send(err);
+        }
     });
+////////////////Request Targeting a Specific Articles//////////////
 
+app.route("/articles/:articleTitle").get(async (req, res) => {
     try {
-        await newArticle.save();
-        res.send("Successfully added a new article.");
+        const foundArticle = await Article.findOne({ title: req.params.articleTitle });
+        if (foundArticle) {
+            res.send(foundArticle);
+        } else {
+            res.send("No articles matching that title were found.");
+        }
     } catch (err) {
         res.send(err);
     }
 });
+
+
+
 
 
 app.listen(3000, function () {
