@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const ejs = require("ejs");
 const mongoose = require("mongoose");
 
 const app = express();
@@ -63,25 +62,57 @@ app.route("/articles")
             res.send(err);
         }
     });
+
 ////////////////Request Targeting a Specific Articles//////////////
 
-app.route("/articles/:articleTitle").get(async (req, res) => {
-    try {
-        const foundArticle = await Article.findOne({ title: req.params.articleTitle });
-        if (foundArticle) {
-            res.send(foundArticle);
-        } else {
-            res.send("No articles matching that title were found.");
+app.route("/articles/:articleTitle")
+    .get(async (req, res) => {
+        try {
+            const foundArticle = await Article.findOne({ title: req.params.articleTitle });
+            if (foundArticle) {
+                res.send(foundArticle);
+            } else {
+                res.send("No articles matching that title were found.");
+            }
+        } catch (err) {
+            res.send(err);
         }
-    } catch (err) {
-        res.send(err);
-    }
-});
-
-
-
-
+    })
+    .put(async (req, res) => {
+        try {
+            await Article.updateMany(
+                { title: req.params.articleTitle },
+                { $set: req.body }
+            );
+            res.send("Successfully updated article(s).");
+        } catch (err) {
+            res.send(err);
+        }
+    })
+    .patch(async (req, res) => {
+        try {
+            await Article.updateMany(
+                { title: req.params.articleTitle },
+                { $set: req.body }
+            );
+            res.send("Successfully updated article.");
+        } catch (err) {
+            res.send(err);
+        }
+    })
+    .delete(async(req, res)=>{
+        try{
+            await Article.deleteOne(
+                {title: req.params.articleTitle}
+            );
+            res.send("Succesfully deleted and corresponding article.")
+        } catch(err){
+            res.send(err);
+        }
+    })
+    
+    
 
 app.listen(3000, function () {
-    console.log("server started on port 3000");
+    console.log("Server started on port 3000");
 });
