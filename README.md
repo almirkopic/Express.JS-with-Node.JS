@@ -6,3 +6,4 @@
 *npm install module
 *npm i express body-parse
 *npm i lodash
+*Web Development Course Resources-The app Brewery*
