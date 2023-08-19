@@ -34,19 +34,16 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-
-
 mongoose.connect("mongodb://127.0.0.1:27017/userDB", {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
 
-
-
 const userSchema = new mongoose.Schema ({
   email: String,
   password: String,
-  googleId: String
+  googleId: String,
+  secret: String
 
 });
 
@@ -70,12 +67,6 @@ passport.deserializeUser(function(id, done){
       done(err, null);
     });
 });
-
-
-
-
-
-
 
 passport.use(new GoogleStrategy({
   clientID: process.env.CLIENT_ID,
@@ -111,13 +102,41 @@ app.get("/register", function(req, res) {
   res.render("register");
 });
 
-app.get("/secrets", function(req, res) {
-  if (req.isAuthenticated()) {
-    res.render("secrets");
-  } else {
-    res.redirect("/login");
+app.get("/secrets", async function(req, res) {
+  try {
+    const foundUsers = await User.find({"secret": {$ne: null}}).exec();
+    res.render("secrets", {usersWithSecrets: foundUsers});
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
   }
 });
+
+
+app.get("/submit", function(req, res){
+if (req.isAuthenticated()){
+  res.render("submit");
+}else{
+  res.redirect("/login");
+}
+});
+
+app.post("/submit", async function(req, res) {
+  const submittedSecret = req.body.secret;
+
+  try {
+    const foundUser = await User.findById(req.user.id).exec();
+    if (foundUser) {
+      foundUser.secret = submittedSecret;
+      await foundUser.save();
+      res.redirect("/secrets");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 app.get("/logout", function(req, res) {
   req.logout(function(err) {
@@ -159,9 +178,6 @@ app.post("/login", async function(req, res) {
     }
   });
 });
-
-
-
 
 app.listen(3000, function() {
   console.log("Server started on port 3000");
